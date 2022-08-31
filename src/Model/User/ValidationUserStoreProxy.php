@@ -96,7 +96,7 @@ class ValidationUserStoreProxy implements PersistInterface
     private function validateEmailIsUnique(string $email): void
     {
         if ($this->query->isExistsByColumn(self::EMAIL_COLUMN, $email)) {
-            throw new ValidationException("name is not unique");
+            throw new ValidationException("email is not unique");
         }
     }
 }

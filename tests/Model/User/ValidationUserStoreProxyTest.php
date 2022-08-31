@@ -36,6 +36,18 @@ final class ValidationUserStoreProxyTest extends TestCase
         }
     }
 
+    public function testUniqueValidation()
+    {
+        $storeStub = $this->createStub(UserStore::class);
+        $queryStub = $this->createStub(UserQuery::class);
+        $queryStub->method("isExistsByColumn")->willReturn(true);
+
+        $validationStore = new ValidationUserStoreProxy($storeStub, $queryStub);
+
+        $this->expectErrorMessage("name is not unique");
+        $validationStore->persist(User::create("asdfzxcv", "some@mail.com"));
+    }
+
     public function validDataProvider()
     {
         return [
