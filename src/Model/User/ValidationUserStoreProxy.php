@@ -10,6 +10,7 @@ use WisebitTest\WisebitTest\Model\EntityInterface;
 use WisebitTest\WisebitTest\Model\PersistInterface;
 use WisebitTest\WisebitTest\Model\ValidationException;
 
+// Можно обобщить для использования на разных моделях
 class ValidationUserStoreProxy implements PersistInterface
 {
     private const BANNED_WORDS = ["badword"];
@@ -29,6 +30,8 @@ class ValidationUserStoreProxy implements PersistInterface
             throw new \Exception("\$user not expected type: {${$user::class}}");
         }
 
+        // Валидации можно обобщить, чтобы просто конфигурировать для моделей.
+        // Но я бы посмотрел в сторону готовых библиотек в таком случае
         $this->validateName($user->getName());
         $this->validateEmail($user->getEmail());
         $this->validateDeleted($user->getDeleted(), $user->getCreated());

@@ -9,6 +9,7 @@ use TypeError;
 use WisebitTest\WisebitTest\Model\EntityInterface;
 use WisebitTest\WisebitTest\Model\PersistInterface;
 
+// Можно обобщить для использования на разных моделях
 class JournalingUserStoreProxy implements PersistInterface
 {
     private const LOG_TABLE = "user_logs";
