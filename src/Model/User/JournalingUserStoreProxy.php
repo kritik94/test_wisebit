@@ -9,12 +9,13 @@ use TypeError;
 use WisebitTest\WisebitTest\Model\EntityInterface;
 use WisebitTest\WisebitTest\Model\PersistInterface;
 
-class UserStore implements PersistInterface
+class JournalingUserStoreProxy implements PersistInterface
 {
-    public const TABLE = "user";
+    private const LOG_TABLE = "user_logs";
 
     public function __construct(
-        private PDO $connection
+        private PDO $connection,
+        private PersistInterface $store
     ) {
     }
 
@@ -25,53 +26,22 @@ class UserStore implements PersistInterface
         }
 
         if (is_null($user->getId())) {
-            $query = $this->connection->prepare(
-                "INSERT INTO {${self::TABLE}} 
-                (name, email, notes, created)
-                VALUE (:name, :email, :notes, :created)
-                "
-            );
-
-            $query->execute([
-                "name" => $user->getName(),
-                "email" => $user->getEmail(),
-                "notes" => $user->getNotes(),
-                "created" => $user->getCreated(),
-            ]);
-
-            $id = $this->connection->lastInsertId();
-            $user->setId((int) $id);
-
+            $this->store->persist($user);
             return;
         }
 
         $this->connection->beginTransaction();
 
         $selectQuery = $this->connection->prepare(
-            "SELECT * FROM users WHERE id=:id"
+            "SELECT * FROM {${UserStore::TABLE}} WHERE id=:id"
         );
         $selectQuery->execute(["id" => $id]);
         $currentData = $selectQuery->fetch(PDO::FETCH_ASSOC);
-
-        $query = $this->connection->prepare(
-            "UPDATE {${self::TABLE}}
-            VALUE (:name, :email, :notes, :deleted)
-            WHERE id = :id
-            "
-        );
-
         $updatedData = $user->toDB();
-        $query->execute($updatedData);
 
-        $this->logUpdate($currentData, $updatedData);
+        $this->store->persist($user);
 
-        $this->connection->commit();
-    }
-
-    private function logUpdate(array $currentData, array $updatedData)
-    {
         $diff = array_diff($currentData, $updatedData);
-
         if (empty($diff)) {
             return;
         }
@@ -83,7 +53,7 @@ class UserStore implements PersistInterface
         );
 
         $query = $this->connection->prepare(
-            "INSERT INTO user_logs (column, old_value, new_value, created) VALUES "
+            "INSERT INTO {${self::LOG_TABLE}} (column, old_value, new_value, created) VALUES "
             . $valuesPlaceholders
         );
 
@@ -93,5 +63,7 @@ class UserStore implements PersistInterface
         );
 
         $query->execute($params);
+
+        $this->connection->commit();
     }
 }

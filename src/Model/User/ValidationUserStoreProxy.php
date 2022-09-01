@@ -18,7 +18,7 @@ class ValidationUserStoreProxy implements PersistInterface
     private const EMAIL_COLUMN = "email";
 
     public function __construct(
-        private UserStore $store,
+        private PersistInterface $store,
         private UserQuery $query,
     ) {
     }

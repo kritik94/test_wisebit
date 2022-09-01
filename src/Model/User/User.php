@@ -67,4 +67,16 @@ class User implements EntityInterface
 
         return $this;
     }
+
+    public function toDB(): array
+    {
+        return [
+            "id" => $this->id,
+            "name" => $this->name,
+            "email" => $this->email,
+            "notes" => $this->notes,
+            "created" => $this->created->format("c"),
+            "deleted" => $this?->deleted->format("c"),
+        ];
+    }
 }
